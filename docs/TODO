@@ -1,5 +1,9 @@
 hldfilter
 ---------
+HIGH:
+- Fix logging issues where it dies trying to save stats
+- Add spamlist file with separate reject send to spammer/spamcop.net
+
 MEDIUM:
 - Add command line option to add email address to reject list
 - Add command line option to add domain to reject list
@@ -10,6 +14,7 @@ LOW:
 - password protected auto responder
 - auto responder to certain emails only
 - Fix reject rule of 100 for sendmail
+- compress folders options
 
 
 statsgen.pl

@@ -10,11 +10,9 @@
 #      http://www.hld.ca/opensource/hldfilter
 #
 ###########################################################################
-# 	$rcs = ' $Id: statsgen.pl,v 2.5 2001/02/22 18:41:24 wombat Exp $ ' ;
+# 	$rcs = ' $Id: statsgen.pl,v 2.6 2001/04/16 01:45:23 wombat Exp $ ' ;
 ###########################################################################
 use strict;
-use Mail::Audit;    # this is for filtering mail
-use Mail::Sender;   # this is for sending my gpg key
 use Date::Manip;    # this is for logging the date
 use GD::Graph::pie;      # for image manipulation
 use GD::Graph::bars;
@@ -38,7 +36,7 @@ use vars (
 					'$VERSION'
 				 );
 
-my $VERSION = "2.2";
+my $VERSION = "2.4";
 my $uid = $>;
 my $home = (getpwuid ($uid))[7];
 my $configDir = $home . "/.hldfilter";
@@ -143,6 +141,11 @@ sub collectStats {
     	       sort { $b->[1] <=> $a->[1] }
   	  			 map { [split /~:~/, $_ ] }
   					 @stats;
+        unless (@stats or @spamstats) {
+            print "You have no stats to update.  Please either send yourself\n";
+            print "an email, or wait for one to arrive.\n";
+            exit (1);
+        }
 }
 
 sub emailTypeGraph {
@@ -378,7 +381,7 @@ sub writeStats {
 		print STATS "</center>\n";
 		
 		print STATS "<hr>\n";
-		print STATS "This page was last updated on $today by" .
+		print STATS "This page was last updated on $today by " .
 				"<a href=\"http://www.hld.ca/opensource/hldfilter\">HLDFilter $VERSION</a>\n";
 
 		flock (STATS, 8);
