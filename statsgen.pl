@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl 
 
 ###########################################################################
 #      Copyright Dan Cardamore <wombat@hld.ca>
@@ -10,7 +10,7 @@
 #      http://www.hld.ca/opensource/hldfilter
 #
 ###########################################################################
-# 	$rcs = ' $Id: statsgen.pl,v 2.3 2001/02/04 17:33:59 wombat Exp $ ' ;
+# 	$rcs = ' $Id: statsgen.pl,v 2.4 2001/02/04 17:34:23 wombat Exp $ ' ;
 ###########################################################################
 use strict;
 use Mail::Audit;    # this is for filtering mail
