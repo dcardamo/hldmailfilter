@@ -10,7 +10,7 @@
 #      http://www.hld.ca/opensource/hldfilter
 #
 ###########################################################################
-# 	$rcs = ' $Id: statsgen.pl,v 2.4 2001/02/04 17:34:23 wombat Exp $ ' ;
+# 	$rcs = ' $Id: statsgen.pl,v 2.5 2001/02/22 18:41:24 wombat Exp $ ' ;
 ###########################################################################
 use strict;
 use Mail::Audit;    # this is for filtering mail
@@ -38,7 +38,7 @@ use vars (
 					'$VERSION'
 				 );
 
-my $VERSION = "2.1";
+my $VERSION = "2.2";
 my $uid = $>;
 my $home = (getpwuid ($uid))[7];
 my $configDir = $home . "/.hldfilter";

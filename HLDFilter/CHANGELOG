@@ -1,5 +1,9 @@
+2.2 (Feb 22, 2001)  Bug fixes
+ - fixed bug where the rules files were very sensitive to new lines
+ - couple other small bugs
+
 2.1 (Jan 09, 2001)  QMail support
- - use MIME::Lite inteed of Mail::Sender
+ - use MIME::Lite instead of Mail::Sender
  - Bug fixed where hldfilter would not read the the config file properly
 
 2.01  Bug fix

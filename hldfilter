@@ -9,7 +9,7 @@
 #      http://www.hld.ca/opensource/hldfilter
 #
 ###########################################################################
-# 	$rcs = ' $Id: hldfilter,v 2.1 2001/01/24 03:45:37 wombat Exp $ ' ;
+# 	$rcs = ' $Id: hldfilter,v 2.2 2001/02/22 18:41:24 wombat Exp $ ' ;
 ###########################################################################
 
 use strict;
@@ -43,14 +43,13 @@ use vars (
 					'@ignore'
 				 );
 
-$VERSION = "2.1";
+$VERSION = "2.2";
 my $uid = $>;
 my $home = (getpwuid ($uid))[7];
 my $configDir = $home . "/.hldfilter";
 my $logfile = $configDir . "/log";
 
-sub writelog($)
-{
+sub writelog {
 	my $entry = shift;
 	my $date = UnixDate($now, "%l");
 	if ($rc{'loglevel'} < 1) { return; }  # no logging
@@ -62,8 +61,7 @@ sub writelog($)
 	return 1;
 }
 
-sub error($)
-{
+sub error {
 	my $error = shift;
 	$msg->accept;  #  we're about to die so save the message
 
@@ -84,14 +82,12 @@ sub error($)
 	confess ($error);
 }
 
-sub rblCheck()
-{
+sub rblCheck {
 	my @addresses = Mail::Address->parse($from);
 	my $host = $addresses[0]->host();
 
 	my $checkRBL = new Mail::RBL('list.org');
-	if ($checkRBL->check($host))
-	{
+	if ($checkRBL->check($host)) {
 			# the host is in the RBL
 			my $logmsg = "SPAM(REJECTED_RBL)-> \n" .
 					"   From: $from\n" .
@@ -106,8 +102,7 @@ sub rblCheck()
 	return 1;
 }
 
-sub checkUser()
-{
+sub checkUser {
 		unless ($rc{'CheckSenderValidity'} eq "yes")	{	return;	}
 
 		my @addresses = Mail::Address->parse($from);
@@ -115,16 +110,13 @@ sub checkUser()
 
 		my $res = Mail::CheckUser::check_email($emailAddress);
 
-		if ($res)
-		{
+		if ($res) {
 				return 1;  # passed test
 		}
-		else
-		{
+		else {
 				my $logmsg;
 				&stats("checkuser");
-				if ($rc{'replyInvalidUser'} eq "yes")
-				{
+				if ($rc{'replyInvalidUser'} eq "yes") {
 						$logmsg = "SPAM(REJECTED_INVALID_USER)-> \n" .
 								"   From: $from\n" .
 								"   Subject: $subject\n" .
@@ -134,8 +126,7 @@ sub checkUser()
 						replyAbuseISP() if ($rc{'InvalidUserBounceISP'} eq "yes");
 						$msg->reject("Your email address or your mailserver are invalid\n");
 				}
-				else
-				{
+				else {
 						$logmsg = "SPAM(IGNORED_INVALID_USER)-> \n" .
 								"   From: $from\n" .
 								"   Subject: $subject\n" .
@@ -149,8 +140,7 @@ sub checkUser()
 		}
 }
 
-sub stats($)
-{
+sub stats {
 	my $type = shift;
 	if ($rc{'statslevel'} < 1) { return; }
 
@@ -164,12 +154,10 @@ sub stats($)
 	close (FILE);
 }
 
-sub getConfig()
-{
+sub getConfig {
 	open (RC, "<$configDir/hldfilter.rc") or &error($!);
 	flock (RC, 2);
-	while (<RC>)
-	{
+	while (<RC>) {
 		chomp;
 		s/#.*//;                # no comments
 		s/^\s+//;               # no leading white
@@ -183,8 +171,7 @@ sub getConfig()
 	return 1;
 }
 
-sub getRules()
-{
+sub getRules {
 	open (RULES, "<$configDir/rules") or &error($!);
 	flock (RULES, 2);
 	my @ruleset = <RULES>;
@@ -192,8 +179,8 @@ sub getRules()
 	close (RULES);
 	chomp @ruleset;
 
-	foreach my $line (@ruleset)
-	{
+	foreach my $line (@ruleset) {
+    if ($line eq "") { next; }
 		my ($key, $folder) = split /~:~/, $line;
 		$rules{$key} = $folder;
 	}
@@ -205,8 +192,8 @@ sub getRules()
 	close (SUBJECTRULES);
 	chomp @ruleset;
 
-	foreach my $line (@ruleset)
-	{
+	foreach my $line (@ruleset) {
+    if ($line eq "") { next; }
 		my ($key, $folder) = split /~:~/, $line;
 		$subjectrules{$key} = $folder;
 	}
@@ -218,8 +205,8 @@ sub getRules()
 	close (FORWARDRULES);
 	chomp @ruleset;
 
-	foreach my $line (@ruleset)
-	{
+	foreach my $line (@ruleset) {
+    if ($line eq "") { next; }
 		my ($key, $address) = split /~:~/, $line;
 		$forwardrules{$key} = $address;
 	}
@@ -231,12 +218,20 @@ sub getRules()
 	close (REJECT);
 	chomp @reject;
 
+  for (my $i = 0; $i <= $#reject; $i++){
+    if ($reject[$i] eq "") { splice @reject, $i, 1; }
+  }
+
 	open (IGNORE, "<$configDir/ignore") or &error($!);
 	flock (IGNORE, 2);
 	@ignore = <IGNORE>;
 	flock (IGNORE, 8);
 	close (IGNORE);
 	chomp @ignore;
+
+  for (my $i = 0; $i <= $#ignore; $i++){
+    if ($ignore[$i] eq "") { splice @ignore, $i, 1; }
+  }
 
 	open (MAIL, "<$configDir/mailback") or &error($!);
 	flock (MAIL, 2);
@@ -245,16 +240,15 @@ sub getRules()
 	close (MAIL);
 	chomp @ruleset;
 
-	foreach my $line (@ruleset)
-	{
+	foreach my $line (@ruleset) {
+    if ($line eq "") { next; }
 		my ($key, $type, $input, $body) = split /~:~/, $line;
 		$mailback{$key} = $type . "~:~" . $input . "~:~" . $body;
 	}
 	return 1;
 }
 
-sub replyAbuseISP()
-{
+sub replyAbuseISP {
 		my @addresses = Mail::Address->parse($from);
 		my $ISPdomain = $addresses[0]->host();
 
@@ -287,10 +281,8 @@ chomp ($from, $to, $subject, $cc);
 &checkUser();  # we already rejected them at this point
 
 
-for my $pattern (keys %forwardrules)
-{
-  if ( ($subject =~ /$pattern/) )
-  {
+for my $pattern (keys %forwardrules) {
+  if ( ($subject =~ /$pattern/) ) {
 		my $logmsg = "Forward ($forwardrules{$pattern})-> \n" .
               "   From: $from\n" .
 							"   Subject: $subject\n" .
@@ -305,10 +297,9 @@ for my $pattern (keys %forwardrules)
 }
 
 ##  Mailing lists
-for my $pattern (keys %rules)
-{
-  if ( ($from =~ /$pattern/i) or ($to =~ /$pattern/i) or ($cc =~ /$pattern/i) )
-  {
+for my $pattern (keys %rules) {
+  if ( ($from =~ /$pattern/i) or 
+    ($to =~ /$pattern/i) or ($cc =~ /$pattern/i) ) {
 		my $logmsg = "$rules{$pattern}-> \n" .
               "   From: $from\n" .
 							"   Subject: $subject\n" .
@@ -320,10 +311,8 @@ for my $pattern (keys %rules)
     $msg->accept($rc{'maildir'}."/".$rules{$pattern})
   }
 }
-for my $pattern (keys %subjectrules)
-{
-  if ( ($subject =~ /$pattern/) )
-  {
+for my $pattern (keys %subjectrules) {
+  if ( ($subject =~ /$pattern/) ) {
 		my $logmsg = "$subjectrules{$pattern}-> \n" .
               "   From: $from\n" .
 							"   Subject: $subject\n" .
@@ -337,10 +326,8 @@ for my $pattern (keys %subjectrules)
 }
 
 ## Mail backs
-for my $pattern (keys %mailback)
-{
-		if ($subject =~ /$pattern/)
-		{
+for my $pattern (keys %mailback) {
+		if ($subject =~ /$pattern/) {
 				my ($type, $input, $body) = split /~:~/, $mailback{$pattern};
 				my $logmsg = "Mail Back ($pattern)-> \n" .
 						"   From: $from\n" .
@@ -350,8 +337,7 @@ for my $pattern (keys %mailback)
 				&writelog($logmsg);
 				&stats("normal~:~mailback");
 
-				if ($type =~ /file/i)
-				{
+				if ($type =~ /file/i) {
 						# Build the message
 						my $sendmail = MIME::Lite->new(
 																					 From     => $rc{'email'},
@@ -369,12 +355,10 @@ for my $pattern (keys %mailback)
 						MIME::Lite->send('smtp', 'localhost', Timeout => 20);
 						$sendmail->send;
 				}
-				elsif ($type =~ /command/i)
-				{
+				elsif ($type =~ /command/i) {
 						my @outputA = `$input`;
 						my $output;
-						foreach my $i (@outputA)
-						{
+						foreach my $i (@outputA) {
 								$output .= "$i\n";
 						}
 						# Build the message
@@ -389,8 +373,7 @@ for my $pattern (keys %mailback)
 						MIME::Lite->send('smtp', 'localhost', Timeout => 20);
 						$sendmail->send;
 				}
-				else
-				{
+				else {
 						&writelog("Error in config file mailback.  Unknown type: $type");
 				}
 				$msg->accept
@@ -398,10 +381,8 @@ for my $pattern (keys %mailback)
 }
 
 #Now catch spam.. this is the fun part!
-foreach my $test (@reject)
-{
-  if ( ($from =~ /$test/i) or ($to =~ /$test/i) )
-  {
+foreach my $test (@reject) {
+  if ( ($from =~ /$test/i) or ($to =~ /$test/i) ) {
 		my $logmsg = "SPAM(REJECTED)-> \n" .
               "   From: $from\n" .
 							"   Subject: $subject\n" .
@@ -414,10 +395,8 @@ foreach my $test (@reject)
   }
 }
 
-foreach my $test (@ignore)
-{
-  if ( ($from =~ /$test/i) or ($to =~ /$test/i) )
-  {
+foreach my $test (@ignore) {
+  if ( ($from =~ /$test/i) or ($to =~ /$test/i) ) {
 		my $logmsg = "SPAM(IGNORED)-> \n" .
               "   From: $from\n" .
 							"   Subject: $subject\n" .
@@ -441,3 +420,6 @@ my $logmsg = "INBOX-> \n" .
 &stats("normal~:~INBOX");
 
 $msg->accept;    # make sure to accept it if no other rules take it out.
+
+
+__END__
