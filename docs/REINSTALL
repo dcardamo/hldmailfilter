@@ -1,7 +1,6 @@
-To reinstall hldfilter for a single user, delete the following files:
-~/.forward
-~/.hldfilter
+hldfilter is backwards compatible with all previous versions of itself.
 
-And then run hldfilter --init.
+If you want to run the newer version of hldfilter, make sure that the path
+pointing to it in your ~/.forward file is correct.
 
 
