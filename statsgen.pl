@@ -10,7 +10,7 @@
 #      http://www.hld.ca/opensource/hldfilter
 #
 ###########################################################################
-# 	$rcs = ' $Id: statsgen.pl,v 2.2 2001/02/01 00:04:09 wombat Exp $ ' ;
+# 	$rcs = ' $Id: statsgen.pl,v 2.3 2001/02/04 17:33:59 wombat Exp $ ' ;
 ###########################################################################
 use strict;
 use Mail::Audit;    # this is for filtering mail
@@ -291,7 +291,6 @@ sub folderTrafficGraph  {
 }
 
 sub removeIgnored {
-	print "Removing Ignored\n";
 	for (my $i = 0; $i <= $#spamstats; $i++) {
 		my ($from, $count) = split /~:~/, $spamstats[$i];
 			
@@ -308,12 +307,10 @@ sub removeIgnored {
 	
 	for (my $i = 0; $i <= $#stats; $i++) {
 		my ($from, $count) = split /~:~/, $stats[$i];
-		print "Testing $from\n";
 			
 		my $ignoreFlag = undef;
 		foreach my $test (@ignore) {
 			if ($from eq $test) {
-				print "removing $i\n";				
 				splice @stats, $i, 1;
 				$i--;
 				last;
