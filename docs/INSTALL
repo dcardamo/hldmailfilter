@@ -1,59 +1,47 @@
-These are the install steps I followed to get this installed on my Redhat 7.0 
-installation.  
 
-UPGRADING
----------
+UPGRADING FROM PRE 2.0
+----------------------
 Version 2.0 Adds a new configuration file as well as new keys in hldfilter.rc.
 I suggest either going from scratch as a new install (keep your old logs and
 stats though).  Or, merge the new into the old if you feel comfortable with
 that.
 
+UPGRADING FROM 2.0 and later
+----------------------------
+Use your same config files, just point to the hldfilter executable in your
+.forward file.
+
 INSTALLATION
 ------------
 There are 3 major things to do here to get hldfilter up and running.  
 They are all easy if you already have perl installed.
-1) install the perl modules
-2) install and configure hldfilter
-3) Edit your .forward file
-3) put the statsgen.pl in your cronjob
+1) Edit the top line of hldfilter & statsgen.pl to point to your perl binary
+2) Run install.pl
+3) run hldfilter --init
+4) Configure hldfilter
 
 Details
 -------
-1) install the following perl modules:
-        Mail::Audit
-      	Mail::Address
-	      Mail::CheckUser
-	      Mail::RBL
-				MIME::Lite
-        Date::Manip
-	      GD::Graph
-	      GD
-	      GD::Text::Align
-        
-   This can be done using the command "perl -MCPAN -e shell".  Then once 
-	 you are in that shell type:
-        install Mail::Audit  <enter>
-        install MIME::Lite  <enter>
-        install Date::Manip <enter>
- 	         .
-	         .
-	         .
+1) Edit the top line of hldfilter and statsgen.pl to point to your perl
+   executable.  You can find this by typing 'which perl' at the command line.
 
-   This should hopefully succesfully install all those modules.
+   eg:  #!/usr/bin/perl      may become:    #!/usr/local/bin/perl
 
-2) Copy hldfilter to somewhere on your system.  ie:  cp hlfilter /usr/local/bin
-   Copy statsgen.pl to somewhere on your system.  
-	  ie:  cp statsgen.pl /usr/local/bin
-   Edit both files and make sure the first line is the correct path of your 
-	 perl binary.  Use "which perl" to find out where it is.
+2) Run install.pl:
+       perl install.pl
 
-   Copy the hldfilterconf/stats directory to where you want your webpage for 
-	 stats hosted.
-       ie:  cp hldfilterconf/stats ~/public_html/emailStats
+   Then follow its instructions.  It will copy hldfilter and statsgen.pl into
+   /usr/local/bin
 
-   Copy hlfilterconf to ~/.hldfilter.  ie:  cp hldfilterconf ~/.hldfilter
+3) As a user you would like to have mail filtered for, run the command:
+        hldfilter --init
 
-3) Edit your config files for hldfilter which are located in ~/.hldfilter
+   This will create a config directory, and edit your .forward file to use
+   hldfilter.  This will not do any filtering until you configure it by either
+   editing the files yourself, or running hldfilter rule commands.  you can see
+   these commands by typing "hldfilter --help".
+
+4) Edit your config files for hldfilter which are located in ~/.hldfilter
    The file hldfilter.rc is the control file which sets certain variables and 
    levels.  Edit this one first.
 
@@ -98,10 +86,6 @@ Details
    the command or file.  The 4th is your comments you want sent along with it.
 
 
-3) Edit your .forward to contain: "|/usr/local/bin/hldfilter". Make sure you 
-   put the quotes and the pipe "|" at the beginning. Of course you substitute 
-	 your path to hldfilter for your install. 
-
 4) Edit your crontab to contain the statsgen.pl file.  Try running it first 
    to see if it works.  If it doesn't you may have some permission problems, 
 	 or your hldfilter.rc file may have the wrong directory.
@@ -114,7 +98,7 @@ Details
 	 the settings in your crontab.
 
 --
-Thats it.  Hope you like it.  I'm just posting this since I made it for myself and figured other might like it.
+Thats it.  Hope you like it.  I'm just posting this since I made it for myself and figured others might like it.
 
 If you like this program, or have suggestions, please email me at wombat@hld.ca.
 

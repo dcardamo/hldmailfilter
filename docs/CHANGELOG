@@ -1,3 +1,11 @@
+2.4  (April 16, 2001)  Bug Fixes and Features
+ - fixed logging problem of errors
+ - fixed lack of filtering when stats dir does not exist
+ - added command line configuring
+ - added install script
+ - added configuration template installation for users
+ - added rejectspam file for rejecting spammers specifically
+
 2.1.1 (Jan 31, 2001)  Features
  - Added ability ignore certain emails when generating stats     
 

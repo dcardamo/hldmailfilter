@@ -1,0 +1,7 @@
+To reinstall hldfilter for a single user, delete the following files:
+~/.forward
+~/.hldfilter
+
+And then run hldfilter --init.
+
+

@@ -10,31 +10,37 @@
 #      http://www.hld.ca/opensource/hldfilter
 #
 ###########################################################################
-# 	$rcs = ' $Id: statsgen.pl,v 2.6 2001/04/16 01:45:23 wombat Exp $ ' ;
+# 	$rcs = ' $Id: statsgen.pl,v 2.7 2001/05/23 14:53:15 wombat Exp $ ' ;
 ###########################################################################
 use strict;
-use Date::Manip;    # this is for logging the date
+use Date::Manip;         # this is for logging the date
 use GD::Graph::pie;      # for image manipulation
-use GD::Graph::bars;
+use GD::Graph::bars;     # for image manipulation
+use Getopt::Long;        # for command line options
 use Carp;
 ############################################################################
 
 use vars (
-					'%rc',
-					'@stats',
-					'@spamstats',
-					'@ignore',
-					'%hashstats',
-					'%hashspamstats',
-					'$spamCount',
-					'$normalCount',
-					'$rblCount',
-					'$checkuserCount',
-					'%folderCount',
-					'%monthStats',
-					'%hourlyStats',
-					'$VERSION'
-				 );
+            '%rc',
+            '@stats',
+            '@spamstats',
+            '@ignore',
+            '%hashstats',
+            '%hashspamstats',
+            '$spamCount',
+            '$normalCount',
+            '$rblCount',
+            '$checkuserCount',
+            '%folderCount',
+            '%monthStats',
+            '%hourlyStats',
+            '$VERSION',
+            '$logfile',
+            '$opt_help',
+            '$opt_file',
+            '$opt_procmail',
+            '$opt_about'
+         );
 
 my $VERSION = "2.4";
 my $uid = $>;
@@ -42,6 +48,58 @@ my $home = (getpwuid ($uid))[7];
 my $configDir = $home . "/.hldfilter";
 my $logfile = $configDir . "/log";
 
+sub usage {
+    print <<USAGE;
+statsgen.pl --option value
+    Copyright Dan Cardamore 2000 - 2001.  <wombat\@hld.ca>
+    http://www.hld.ca/opensource/hldfilter
+Options:
+  --file:\t\tStats file name
+  --procmail:\t\tParse file in procmail log format
+  --about:\t\tInformation about this program
+USAGE
+}
+
+sub about {
+    print <<ABOUT;
+Copyright Dan Cardamore 2000 - 2001.  <wombat\@hld.ca>
+http://www.hld.ca/opensource/hldfilter
+
+statsgen.pl is provided as part of the HLDFilter package which perfoms mail
+filtering and web based statistics.  statsgen.pl can be used without hldfilter
+to generate web statistics from procmail log files.
+
+This program is released under the GNU GPL.  It is important to note that no
+warranty of any kind is offered or implied with this software.
+
+Please email me at wombat\@hld.ca for any bugs.  General discussions should be
+directed to the mailing list at hldfilter\@hld.ca.
+ABOUT
+}
+
+sub commandLine {
+    &getOptions(
+            "file", \$opt_file,
+            "procmail", \$opt_procmail,
+            "about", \$opt_about,
+            "help", \$opt_help,
+            "<>", \&usage
+            );
+
+    if (defined $opt_help) {
+        &usage;
+        exit;
+    }
+
+    if (defined $opt_about) {
+        &about;
+        exit;
+    }
+
+    if (defined $opt_file) {
+        $logfile = $opt_file;
+    }
+}
 sub error($)
 {
 	my $error = shift;
@@ -76,76 +134,97 @@ sub getConfig {
 }
 
 sub collectStats {
-		open (STATS, "<$rc{'statsdir'}/stats.dat") or error($!);
-		flock (STATS, 2);
-		my @statsdat = <STATS>;
-		flock (STATS, 8);
-		close (STATS);
-		chomp @statsdat;
+    $logfile ||= "$rc{'statsdir'}/stats.dat";
+
+    open (STATS, "<$logfile") or error($!);
+    flock (STATS, 2);
+    my @statsdat = <STATS>;
+    flock (STATS, 8);
+    close (STATS);
+    chomp @statsdat;
 
 
-		foreach my $line (@statsdat)
-		{
-				my ($from, $date, $type, $folder) = split /~:~/,$line;
-				if ($type eq "spam")
-				{
-						$hashspamstats{$from}++;
-						$spamCount++;
-				}
-				elsif ($type eq "normal")
-				{
-						$hashstats{$from}++;
-						$normalCount++;
-				}
-				elsif ($type eq "rbl")
-				{
-						$hashspamstats{$from}++;
-						$rblCount++;
-				}
-				elsif ($type eq "checkuser")
-				{
-						$hashspamstats{$from}++;
-						$checkuserCount++;
-				}
+    for( my $i=0; $i <= $#statsdat; $i++) {
+        my ($from, $date, $folder, $size, $type, $subject);
+        if ($opt_procmail) {
 
-				# Do stats for folder now
-				if (defined $folder)
-				{
-						$folderCount{$folder}++;
-				}
-				my $day = int UnixDate($date, "%d");
-				my $month = UnixDate($date, "%m");
-				my $year = UnixDate($date, "%Y");
-				my $thismonth = UnixDate("today", "%m");
-				my $thisyear = UnixDate("today", "%Y");
+            $statsdat[$i] =~ s/^From //;
+            $statsdat[$i] =~ /\s/;
+            $from = $`;
+            $date = $';
+            $i++;         # go to the next line
 
-				$monthStats{$day}++ if (($month eq $thismonth) and ($year eq $thisyear));
-				my $hour = int UnixDate($date, "%H");
-				$hourlyStats{$hour}++;
-		}
-
-		foreach my $from (keys %hashspamstats)
-		{
-			push @spamstats, "$from~:~$hashspamstats{$from}";
-		}
-		@spamstats = map { $_->[0] }
-                 sort { $b->[1] <=> $a->[1] }
-                 map { [split /~:~/, $_ ] }
-  							 @spamstats;
-
-		foreach my $from (keys %hashstats)
-		{
-  			push @stats, "$from~:~$hashstats{$from}";
-		}
-		@stats = map { $_->[0] }
-    	       sort { $b->[1] <=> $a->[1] }
-  	  			 map { [split /~:~/, $_ ] }
-  					 @stats;
-        unless (@stats or @spamstats) {
-            print "You have no stats to update.  Please either send yourself\n";
-            print "an email, or wait for one to arrive.\n";
-            exit (1);
+            $statsdat[$i] =~ s/^Subject: //;
+            $subject = $statsdat[$i];
+            $i++;         # go to next line
+            
+            $statsdat[$i] =~ s/^Folder: //;
+            $statsdat[$i] =~ /\s/;
+            $folder = $`;
+            $size = $';
         }
+        else {
+            ($from, $date, $type, $folder) = split /~:~/,$statsdat[$i];
+            if ($type eq "spam")
+            {
+                    $hashspamstats{$from}++;
+                    $spamCount++;
+            }
+            elsif ($type eq "normal")
+            {
+                    $hashstats{$from}++;
+                    $normalCount++;
+            }
+            elsif ($type eq "rbl")
+            {
+                    $hashspamstats{$from}++;
+                    $rblCount++;
+            }
+            elsif ($type eq "checkuser")
+            {
+                    $hashspamstats{$from}++;
+                    $checkuserCount++;
+            }
+        }
+
+        # Do stats for folder now
+        if (defined $folder)
+        {
+                $folderCount{$folder}++;
+        }
+        my $day = int UnixDate($date, "%d");
+        my $month = UnixDate($date, "%m");
+        my $year = UnixDate($date, "%Y");
+        my $thismonth = UnixDate("today", "%m");
+        my $thisyear = UnixDate("today", "%Y");
+
+        $monthStats{$day}++ if (($month eq $thismonth) and ($year eq $thisyear));
+        my $hour = int UnixDate($date, "%H");
+        $hourlyStats{$hour}++;
+    }
+
+    foreach my $from (keys %hashspamstats)
+    {
+        push @spamstats, "$from~:~$hashspamstats{$from}";
+    }
+    @spamstats = map { $_->[0] }
+             sort { $b->[1] <=> $a->[1] }
+             map { [split /~:~/, $_ ] }
+                         @spamstats;
+
+    foreach my $from (keys %hashstats)
+    {
+        push @stats, "$from~:~$hashstats{$from}";
+    }
+    @stats = map { $_->[0] }
+           sort { $b->[1] <=> $a->[1] }
+             map { [split /~:~/, $_ ] }
+                 @stats;
+    unless (@stats or @spamstats) {
+        print "You have no stats to update.  Please either send yourself\n";
+        print "an email, or wait for one to arrive.\n";
+        exit (1);
+    }
 }
 
 sub emailTypeGraph {
