@@ -1,10 +1,8 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 use strict;
 use CPAN;
 
-use constant TRUE 1;
-use constant FALSE 0;
 
 ###########################################################################
 #
@@ -17,7 +15,7 @@ use constant FALSE 0;
 #      http://www.hld.ca/opensource/hldfilter
 #
 ###########################################################################
-#   $rcs = ' $Id: install.pl,v 2.1 2001/04/16 01:45:23 wombat Exp $ ' ;
+#   $rcs = ' $Id: install.pl,v 2.2 2001/06/01 15:30:59 wombat Exp $ ' ;
 ###########################################################################
 
 print <<START;
@@ -46,10 +44,16 @@ my @modules = (
         "GD::bars"
         );
 
-my $status = TRUE;
+print "Copying HLDFilter files into /usr/local/bin...\n";
+`cp hldfilter /usr/local/bin`;
+`chmod 755 /usr/local/bin/hldfilter`;
+`cp statsgen.pl /usr/local/bin/`;
+`chmod 755 /usr/local/bin/statsgen.pl`;
+
+my $status = 1;
 foreach my $module (@modules) {
-    print "Installing $module:\n";
-    unless (install($module)) { $status = FALSE; }
+    print "Installing $module...\n";
+    unless (install($module)) { $status = undef; }
 }
 
 print "\n\n";
@@ -60,6 +64,7 @@ else {
     print "Some module installs failed.\n";
 }
 sleep 2;
+
 
 print <<END;
 Installation of modules is complete.  If any errors occured, you
@@ -72,5 +77,11 @@ very top line of both /usr/local/bin/hldfilter and
 /usr/local/bin/statsgen.pl is correct.  You can find this path by
 typing 'which perl' at the command line.
 
-To get started filtering, type hldfilter --init to set a user up.
+To get started filtering, type 'hldfilter --init' to set a user up.
+
+If you have problems with hldfilter, please join one of the
+mailing lists located at http://www.hld.ca/opensource/hldfilter
 END
+
+
+

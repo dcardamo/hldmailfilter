@@ -10,7 +10,7 @@
 #      http://www.hld.ca/opensource/hldfilter
 #
 ###########################################################################
-# 	$rcs = ' $Id: hldfilter,v 2.3 2001/04/16 01:45:22 wombat Exp $ ' ;
+# 	$rcs = ' $Id: hldfilter,v 2.4 2001/06/01 15:30:59 wombat Exp $ ' ;
 ###########################################################################
 
 use strict;
@@ -47,6 +47,7 @@ use vars (
             '$opt_forward',
             '$opt_rejectspam',
             '$opt_ignore',
+            '$opt_version',	  
             '$opt_spamcop',
             '$opt_addrule',
             '$opt_addsubjectrule',
@@ -72,7 +73,7 @@ my $logfile = $configDir . "/log";
 
 sub usage {
     print <<USAGE;
-hldfilter --option value
+hldfilter --option value -option2 value
    Copyright Dan Cardamore 2000-2001. <wombat\@hld.ca>
    http://www.hld.ca/opensource/hldfilter
 Options:
@@ -82,6 +83,7 @@ Options:
   --rejectspam:\t\tAdd sender to rejectspam list
   --init:\t\tInitialize configuration files for HLDFilter
   --about:\t\tInformation about this program
+  --version:\t\tDisplay version number
   --addsubjectrule:\tCreate a subject rule.  A prompt for the subject
     \t\t\twill be given.
   --extractfrom\t\tWhen a piped message is given, the "From: " field will
@@ -98,6 +100,7 @@ Options:
   --subject\t\tSpecify the "Subject: " field.
   --folder\t\tSpecify the "Folder: " field.
 USAGE
+    exit;
 }
 
 sub commandLine {
@@ -106,6 +109,7 @@ sub commandLine {
         "forward", \$opt_forward,
         "ignore", \$opt_ignore,
         "about", \$opt_about,
+        "version", \$opt_version,
         "init", \$opt_init,
         "rejectspam", \$opt_rejectspam,
         "spamcop", \$opt_spamcop,
@@ -126,7 +130,11 @@ sub commandLine {
 
     if (defined $opt_help) {
         &usage;
-        exit;
+    }
+
+    if (defined $opt_version) {
+      print "hldfilter version $VERSION\n";
+      exit;
     }
 
     # check if we got any parameters or not
