@@ -1,8 +1,13 @@
 <center><H1><u>HLD Filter</u></H1></center>
 <p>
 <b>Description:</b><br>
-A unix based mail filter written in perl to replace
-procmail.  Source code is free and released under GNU GPL.<br>
+A unix based mail filter written in perl to replace procmail and many
+other mail utilities.  Source code is free and released under GNU
+GPL.<br>
+Version 2.4 brings HLDFilter into a swiss army knife type of utility.
+Because it is written entirely in perl, and has many features,
+hldfilter is not the fastest mailfilter, but for 95% of users, this is
+not an issue anyways.  Please read the Features section for more info.
 </p>
 
 <p>
@@ -54,14 +59,19 @@ supported)
  <li>Verifies the validity of a senders email address
  <li>Forwarding of emails to other email addresses
  <li>Advanced logging
+ <li>Command-line configuration
+ <li>Command-line processing of messages
+ <li>Easy to use and install
 </ul>
 </p>
 
 </p>
 <b>Future plans:</b>
 <ul>
- <li>Add Configuration GUI of some kind.
- <li>Fix "Date" header in emails to not be any time later than the current time.
+ <li>Add the ability to process procmail log files for webstats
+ <li>Fix "Date" header in emails to not be any time later than the
+ current time.
+ <li>Add ability to capture all attachments into a specified directory
 </ul>
 </p>
 
@@ -81,15 +91,18 @@ Cardamore</a>.
 <br>
 hldfilter is copyrighted by Dan Cardamore with all rights reserved.
 It is released under the <a href="docs/GPL">GNU GPL</a>.
+<br>Thanks to Simon Cozens (simon@cpan.org) for writing Mail::Audit and a great
+<a href="http://tpj.com">tpj.com</a> article.
 </p>
 
 <p>
 <b>Linked by:</b><br>
-<a href="http://www.freshmeat.net"><img 
-    src="http://freshmeat.net/images/fm.mini.jpg" border=0 alt="Freshmeat"></a>
-<a href="http://www.linux-directory.com" target="_top">
-     <IMG SRC="http://www.linux-directory.com/button_88x31.gif"
-            WIDTH=88 HEIGHT=31 BORDER=0 ALT="Click here"></a>
+<a href="http://www.gnu.org/directory/hldfilter.html">GNU.org</a><br>
+<a href="http://www.freshmeat.net">Freshmeat</a><br>
+<a href="http://www.linux-directory.com" target="_top"><IMG
+SRC="http://www.linux-directory.com/button_88x31.gif" WIDTH=88
+HEIGHT=31 BORDER=0 ALT="Click here"></a><br>
+<a href="http://linux.davecentral.com/6529_mailutil.html">DaveCentral</a><br>
 </p>
 
 <p>
@@ -99,5 +112,3 @@ It is released under the <a href="docs/GPL">GNU GPL</a>.
               width="88" height="31" border="0" alt="SourceForge
               Logo"></A>
 </p>
-
-
