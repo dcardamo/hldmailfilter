@@ -1,0 +1,37 @@
+2.1 (Jan 09, 2001)  QMail support
+ - use MIME::Lite inteed of Mail::Sender
+ - Bug fixed where hldfilter would not read the the config file properly
+
+2.01  Bug fix
+ - Added fix for bug where it will choke if you tell it not to check user
+
+2.0 Many Features added
+ - Added many more prefs.
+ - Added comments to hldfilter.rc file
+ - Added more graphs
+ - Added auto reporting of spam to abuse@theirISP.com so that the spammers ISP
+   Can deal with the problem.
+ - Modified Folder graph to have alternating colors
+ - tidy's up mail to make it cleaner looking
+ - added forwarding of mail.  see forwardrules file.
+
+1.9  Bug fixes
+ - if a senders email is invalid we have the option of not replying to 
+   them now. 
+ - Images on webpage are not cached.
+ - Stats page now contains a human readable date
+
+1.8  Feature additions
+ - Added graphical stats with GD::Graph
+ - RBL Check
+ - Extracts addresses for cleaner stats
+ - Check syntax and validity of senders email address
+
+1.7  Redid stats to fix a nasty bug
+ - Removed a bug where the stats file would become very large and crash 
+   the machine.
+ - Added statsgen.pl which can be run as a cronjob to parse the stats.dat 
+   file and print out the stats
+ - Error's are more graceful and save mail before dieing.
+
+1.6  Initial Revision

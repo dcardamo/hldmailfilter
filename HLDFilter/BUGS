@@ -1,0 +1,16 @@
+
+I've tested on my own and it seems to work very well.  If you find a bug,
+please email me at wombat@hld.ca with it, as well as your system configuration.
+
+Please include at a minimum:
+- mailserver (sendmail, qmail, other...)
+- webserver (apache...)
+- distribution (redhat, debian, version of it)
+- perl version
+- the error it put in the log file, or in your mail if you get an error message.
+
+Support for this program is free, and I will do my best, but it is without warranty or liability as stated in the license.
+
+Thanks,
+
+Dan

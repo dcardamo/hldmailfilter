@@ -1,0 +1,24 @@
+#   HLDFilter Config File.  Anything following a '#' will be ignored.
+
+maildir=/home/wombat/.Mail   # the directory containing all your mail folders
+statsdir=/home/wombat/public_html/stats    # directory containing your stats web
+																   		     #     pages.
+
+loglevel=1                   # set to 0 if you don't want logs
+statslevel=1                 # Stats
+
+email=wombat@hld.ca          # your email address
+smtpserver=localhost         # your outgoing mailserver
+rejectmsg=Message Not Accpepted   # message to reject with
+
+CheckSenderValidity=yes      # check how valid the sender's email address is
+tidyMessages=yes             # clean up messages?  (not tested thorougly)
+replyInvalidUser=no          # should we reply to invalid users?
+RejectedSpamBounceISP=yes    # send mail to abuse@theirISP.com?
+IgnoreSpamBounceISP=no       # do the same when we ignore
+InvalidUserBounceISP=yes     # again, but with invalid email addresses
+
+Stats_HideSpammersEmail=no   # hide the spammers email addresses
+Stats_HideAcceptedEmail=no   # hide the accepted email addresses
+TopSpammersCount=10          # 0 is all.  This is the max number shown
+TopAcceptedCount=10          # 0 is all.

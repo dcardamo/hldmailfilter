@@ -1,0 +1,12 @@
+hldfilter
+---------
+- auto responder list back
+- password protected auto responder
+- auto responder to certain emails only
+- add auto ignore or auto reject through mail from self
+- Fix reject rule of 100 for sendmail
+
+
+statsgen.pl
+-----------
+- break RBL, CheckUser and Spam into different tables

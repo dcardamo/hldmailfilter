@@ -1,0 +1,121 @@
+These are the install steps I followed to get this installed on my Redhat 7.0 
+installation.  
+
+UPGRADING
+---------
+Version 2.0 Adds a new configuration file as well as new keys in hldfilter.rc.
+I suggest either going from scratch as a new install (keep your old logs and
+stats though).  Or, merge the new into the old if you feel comfortable with
+that.
+
+INSTALLATION
+------------
+There are 3 major things to do here to get hldfilter up and running.  
+They are all easy if you already have perl installed.
+1) install the perl modules
+2) install and configure hldfilter
+3) Edit your .forward file
+3) put the statsgen.pl in your cronjob
+
+Details
+-------
+1) install the following perl modules:
+        Mail::Audit
+      	Mail::Address
+	      Mail::CheckUser
+	      Mail::RBL
+				MIME::Lite
+        Date::Manip
+	      GD::Graph
+	      GD
+	      GD::Text::Align
+        
+   This can be done using the command "perl -MCPAN -e shell".  Then once 
+	 you are in that shell type:
+        install Mail::Audit  <enter>
+        install MIME::Lite  <enter>
+        install Date::Manip <enter>
+ 	         .
+	         .
+	         .
+
+   This should hopefully succesfully install all those modules.
+
+2) Copy hldfilter to somewhere on your system.  ie:  cp hlfilter /usr/local/bin
+   Copy statsgen.pl to somewhere on your system.  
+	  ie:  cp statsgen.pl /usr/local/bin
+   Edit both files and make sure the first line is the correct path of your 
+	 perl binary.  Use "which perl" to find out where it is.
+
+   Copy the hldfilterconf/stats directory to where you want your webpage for 
+	 stats hosted.
+       ie:  cp hldfilterconf/stats ~/public_html/emailStats
+
+   Copy hlfilterconf to ~/.hldfilter.  ie:  cp hldfilterconf ~/.hldfilter
+
+3) Edit your config files for hldfilter which are located in ~/.hldfilter
+   The file hldfilter.rc is the control file which sets certain variables and 
+   levels.  Edit this one first.
+
+       maildir=<your mail directory where you keep all your mail folders>
+       loglevel=0 (if you don't want any logging).
+       loglevel=1 (if you do want logging).
+       rejectmsg=What you want to say back to spammers
+       smtpserver=(your mail server that you send mail through)
+       email=youremail@address.com
+       statsdir=(the location you copied your stats directory to in step 2)
+       statslevel=(0 if you don't want stats, 1 if you do)
+
+   The files "~/.hldfilter/ignore" and "~/.hldfilter/reject" both have the same 
+   syntax.  Each line is describes one entry you don't want mail from.  Each 
+	 line is matched with the To, From, and CC fields.  If it does match it then 
+	 it will either be rejected or ignored.
+
+   The "~/.hldfilter/rules" file is a bit different.  Each line has 2 fields 
+   which are separated by ~:~.  The first field is a regex which will be 
+	 matched to the To, From, and CC fields.  If it does match then it will be 
+	 added to the mailfolder described by the 2nd field.  This folder is in the 
+	 maildir directory defined in the hlfilter.rc file.
+
+   Edit the "~/.hldfilter/subjectrules" file.  This file has the same syntax 
+	 as the "~/.hldfilter/rules" file, except that the first field is a regex 
+	 matched to the Subject field of an email instead.
+
+	 Edit "~/.hldfilter/forwardrules" file.  This is similar to subjectrules
+	 except that instead of a folder as the second field, it is the person you
+	 want to bounce the email to.  The first field is matched against the subject.
+
+   Edit the "~/.hldfilter/mailback" file.  This file allows you to have your 
+	 mail filter autmatically respond to a command.  You can also use this to 
+	 have it run commands as you on your system.
+   I highly recommend not treating this as a secure method to do that though 
+	 since anyone could send you an email to run a command on your machine.  
+	 The mailback feature is secure in the sense that you decide which commands 
+	 get run, and only they can get run.   Now that that is out of the way, 
+	 here's what the syntax is.  Each line is an entry with 4 fields separated 
+	 by ~:~.  The first field is the subject regex that you will respond to 
+	 automatically.  The 2nd is the type (file or command).  The 3rd is either
+   the command or file.  The 4th is your comments you want sent along with it.
+
+
+3) Edit your .forward to contain: "|/usr/local/bin/hldfilter". Make sure you 
+   put the quotes and the pipe "|" at the beginning. Of course you substitute 
+	 your path to hldfilter for your install. 
+
+4) Edit your crontab to contain the statsgen.pl file.  Try running it first 
+   to see if it works.  If it doesn't you may have some permission problems, 
+	 or your hldfilter.rc file may have the wrong directory.
+
+   Type "crontab -e" as yourself.  Put a line looking like the following in:
+   30  3  *  *  *   /usr/local/bin/statsgen.pl  #hldfilter stats generator
+
+   That will run the command at 3:30AM every day.  Therefore your page will be 
+	 updated at that time.  If you want this updated more frequently then tweak 
+	 the settings in your crontab.
+
+--
+Thats it.  Hope you like it.  I'm just posting this since I made it for myself and figured other might like it.
+
+If you like this program, or have suggestions, please email me at wombat@hld.ca.
+
+Dan Cardamore
