@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 ###########################################################################
 #      Copyright Dan Cardamore <wombat@hld.ca>
@@ -10,7 +10,7 @@
 #      http://www.hld.ca/opensource/hldfilter
 #
 ###########################################################################
-# 	$rcs = ' $Id: statsgen.pl,v 2.1 2001/01/24 03:45:37 wombat Exp $ ' ;
+# 	$rcs = ' $Id: statsgen.pl,v 2.2 2001/02/01 00:04:09 wombat Exp $ ' ;
 ###########################################################################
 use strict;
 use Mail::Audit;    # this is for filtering mail
@@ -25,6 +25,7 @@ use vars (
 					'%rc',
 					'@stats',
 					'@spamstats',
+					'@ignore',
 					'%hashstats',
 					'%hashspamstats',
 					'$spamCount',
@@ -50,8 +51,7 @@ sub error($)
 	confess ($error);
 }
 
-sub getConfig()
-{
+sub getConfig {
 	open (RC, "<$configDir/hldfilter.rc") or &error($!);
 	flock (RC, 2);
 	while (<RC>)
@@ -66,11 +66,18 @@ sub getConfig()
 	}
 	flock (*RC, 8);
 	close(*RC);
+
+	open (IGNORE, "<$configDir/stats.ignore") or &error($!);
+	flock (IGNORE, 2);
+	@ignore = <IGNORE>;
+	flock (IGNORE, 8);
+	close (IGNORE);
+	chomp @ignore;
+
 	return 1;
 }
 
-sub collectStats()
-{
+sub collectStats {
 		open (STATS, "<$rc{'statsdir'}/stats.dat") or error($!);
 		flock (STATS, 2);
 		my @statsdat = <STATS>;
@@ -138,8 +145,7 @@ sub collectStats()
   					 @stats;
 }
 
-sub emailTypeGraph()
-{
+sub emailTypeGraph {
 		my @data = (
 								["Normal", "Spam", "RBL", "CheckUser"],
 								[$normalCount, $spamCount, $rblCount, $checkuserCount],
@@ -169,8 +175,7 @@ sub emailTypeGraph()
 		return "<img src=\"emailTypePie.png\" border=0><br>\n";
 }
 
-sub MonthlyGraph()
-{
+sub MonthlyGraph {
 		my $today = &ParseDate("today");
 		my $month = UnixDate($today, "%m");
 		my $year = UnixDate($today, "%Y");
@@ -209,8 +214,7 @@ sub MonthlyGraph()
 
 }
 
-sub HourlyGraph()
-{
+sub HourlyGraph  {
 		my $today = &ParseDate("today");
 
 		my @hourNames = (0 .. 23);
@@ -246,8 +250,7 @@ sub HourlyGraph()
 
 }
 
-sub folderTrafficGraph()
-{
+sub folderTrafficGraph  {
 		my @folderNames = keys %folderCount;
 		my @folderCounts;
 
@@ -287,9 +290,39 @@ sub folderTrafficGraph()
 		return "<img src=\"folderTraffic.png\" border=0><br>\n";
 }
 
+sub removeIgnored {
+	print "Removing Ignored\n";
+	for (my $i = 0; $i <= $#spamstats; $i++) {
+		my ($from, $count) = split /~:~/, $spamstats[$i];
+			
+		my $ignoreFlag = undef;
+		foreach my $test (@ignore) {
+			if ($from eq $test) {
+				splice @spamstats, $i, 1;
+				$i--;
+				last;
+			}
+		}
+	}
 
-sub writeStats()
-{
+	
+	for (my $i = 0; $i <= $#stats; $i++) {
+		my ($from, $count) = split /~:~/, $stats[$i];
+		print "Testing $from\n";
+			
+		my $ignoreFlag = undef;
+		foreach my $test (@ignore) {
+			if ($from eq $test) {
+				print "removing $i\n";				
+				splice @stats, $i, 1;
+				$i--;
+				last;
+			}
+		}
+	}
+}
+
+sub writeStats {
 		my $today = ParseDate("today");
 		$today = UnixDate($today, "%H:%M %D");
 
@@ -299,9 +332,13 @@ sub writeStats()
 		print STATS "<center>\n";
 
 		print STATS emailTypeGraph();
+		print STATS "<hr width=50%>";
 		print STATS folderTrafficGraph();
+		print STATS "<hr width=50%>";
 		print STATS MonthlyGraph();
+		print STATS "<hr width=50%>";		
 		print STATS HourlyGraph();
+		print STATS "<hr width=50%>";		
 
 		unless ($rc{'Stats_HideSpammersEmail'} eq "yes")
 		{
@@ -312,12 +349,11 @@ sub writeStats()
 				print STATS "<td bgcolor=#477979 align=center><font color=white>Count</font></td></tr>\n";
 
 				my $max = 1;
-				foreach my $line (@spamstats)
-				{
-						my ($from, $count) = split /~:~/, $line;
-						print STATS "<tr><td>$from</td><td>$hashspamstats{$from}</td></tr>\n";
-						last if (($rc{'TopSpammersCount'} ne "0" ) and ($max == $rc{'TopSpammersCount'}));
-						$max++;
+				foreach my $line (@spamstats)	{
+					my ($from, $count) = split /~:~/, $line;
+					print STATS "<tr><td>$from</td><td>$hashspamstats{$from}</td></tr>\n";
+					last if (($rc{'TopSpammersCount'} ne "0" ) and ($max == $rc{'TopSpammersCount'}));
+					$max++;
 				}
 				print STATS "</table>\n";
 		}
@@ -331,20 +367,19 @@ sub writeStats()
 				print STATS "<td bgcolor=#477979 align=center><font color=white>Count</font></td></tr>\n";
 
 				my $max = 1;
-				foreach my $line (@stats)
-				{
-						my ($from, $count) = split /~:~/, $line;
-						my $maskFrom = $from;
-						$maskFrom =~ s/@/ <b>at<\/b> /;
-						print STATS "<tr><td>$maskFrom</td><td>$hashstats{$from}</td></tr>\n";
-						last if (($rc{'TopAcceptedCount'} ne "0" ) and ($max == $rc{'TopAcceptedCount'}));
-						$max++;
+				foreach my $line (@stats)	{
+					my ($from, $count) = split /~:~/, $line;
+					my $maskFrom = $from;
+					$maskFrom =~ s/@/ <b>at<\/b> /;
+					print STATS "<tr><td>$maskFrom</td><td>$hashstats{$from}</td></tr>\n";
+					last if (($rc{'TopAcceptedCount'} ne "0" ) and ($max == $rc{'TopAcceptedCount'}));
+					$max++;
 				}
 				print STATS "</table>\n";
 		}
-
+		
 		print STATS "</center>\n";
-
+		
 		print STATS "<hr>\n";
 		print STATS "This page was last updated on $today by" .
 				"<a href=\"http://www.hld.ca/opensource/hldfilter\">HLDFilter $VERSION</a>\n";
@@ -358,6 +393,7 @@ sub writeStats()
 #  Start  #
 ###########
 
-getConfig();
-collectStats();
-writeStats();
+&getConfig;
+&collectStats;
+&removeIgnored;
+&writeStats;
