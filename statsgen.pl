@@ -10,13 +10,14 @@
 #      http://www.hld.ca/opensource/hldfilter
 #
 ###########################################################################
-# 	$rcs = ' $Id: statsgen.pl,v 2.8 2001/06/01 15:30:59 wombat Exp $ ' ;
+# 	$rcs = ' $Id: statsgen.pl,v 2.9 2001/06/01 15:42:50 wombat Exp $ ' ;
 ###########################################################################
 use strict;
+use Mail::Audit;		# this is for filtering mail
+use Mail::Sender;		# this is for sending my gpg key
 use Date::Manip;		# this is for logging the date
 use GD::Graph::pie;		# for image manipulation
-use GD::Graph::bars;		# for image manipulation
-use Getopt::Long;		# for command line options
+use GD::Graph::bars;
 use Carp;
 ############################################################################
 
@@ -34,13 +35,8 @@ use vars (
 	  '%folderCount',
 	  '%monthStats',
 	  '%hourlyStats',
-	  '$VERSION',
-	  '$logfile',
-	  '$opt_help',
-	  '$opt_file',
-	  '$opt_procmail',
-	  '$opt_about'
-         );
+	  '$VERSION'
+	 );
 
 my $VERSION = "2.4";
 my $uid = $>;
@@ -48,60 +44,7 @@ my $home = (getpwuid ($uid))[7];
 my $configDir = $home . "/.hldfilter";
 my $logfile = $configDir . "/log";
 
-sub usage {
-  print <<USAGE;
-statsgen.pl --option value
-    Copyright Dan Cardamore 2000 - 2001.  <wombat\@hld.ca>
-    http://www.hld.ca/opensource/hldfilter
-Options:
-  --file:\t\tStats file name
-  --procmail:\t\tParse file in procmail log format
-  --about:\t\tInformation about this program
-USAGE
-}
-
-sub about {
-  print <<ABOUT;
-Copyright Dan Cardamore 2000 - 2001.  <wombat\@hld.ca>
-http://www.hld.ca/opensource/hldfilter
-
-statsgen.pl is provided as part of the HLDFilter package which perfoms mail
-filtering and web based statistics.  statsgen.pl can be used without hldfilter
-to generate web statistics from procmail log files.
-
-This program is released under the GNU GPL.  It is important to note that no
-warranty of any kind is offered or implied with this software.
-
-Please email me at wombat\@hld.ca for any bugs.  General discussions should be
-directed to the mailing list at hldfilter\@hld.ca.
-ABOUT
-}
-
-sub commandLine {
-  &getOptions(
-	      "file", \$opt_file,
-	      "procmail", \$opt_procmail,
-	      "about", \$opt_about,
-	      "help", \$opt_help,
-	      "<>", \&usage
-	     );
-
-  if (defined $opt_help) {
-    &usage;
-    exit;
-  }
-
-  if (defined $opt_about) {
-    &about;
-    exit;
-  }
-
-  if (defined $opt_file) {
-    $logfile = $opt_file;
-  }
-}
-sub error($)
-  {
+sub error($)  {
     my $error = shift;
     $error = "ERROR: $error";
     confess ($error);
@@ -133,9 +76,7 @@ sub getConfig {
 }
 
 sub collectStats {
-  $logfile ||= "$rc{'statsdir'}/stats.dat";
-
-  open (STATS, "<$logfile") or error($!);
+  open (STATS, "<$rc{'statsdir'}/stats.dat") or error($!);
   flock (STATS, 2);
   my @statsdat = <STATS>;
   flock (STATS, 8);
@@ -143,42 +84,23 @@ sub collectStats {
   chomp @statsdat;
 
 
-  for ( my $i=0; $i <= $#statsdat; $i++) {
-    my ($from, $date, $folder, $size, $type, $subject);
-    if ($opt_procmail) {
-
-      $statsdat[$i] =~ s/^From //;
-      $statsdat[$i] =~ /\s/;
-      $from = $`;
-      $date = $';
-      $i++;			# go to the next line
-
-      $statsdat[$i] =~ s/^Subject: //;
-      $subject = $statsdat[$i];
-      $i++;			# go to next line
-            
-      $statsdat[$i] =~ s/^Folder: //;
-      $statsdat[$i] =~ /\s/;
-      $folder = $`;
-      $size = $';
-    } else {
-      ($from, $date, $type, $folder) = split /~:~/,$statsdat[$i];
-      if ($type eq "spam") {
-	$hashspamstats{$from}++;
-	$spamCount++;
-      } elsif ($type eq "normal") {
-	$hashstats{$from}++;
-	$normalCount++;
-      } elsif ($type eq "rbl") {
-	$hashspamstats{$from}++;
-	$rblCount++;
-      } elsif ($type eq "checkuser") {
-	$hashspamstats{$from}++;
-	$checkuserCount++;
-      }
+  foreach my $line (@statsdat) {
+    my ($from, $date, $type, $folder) = split /~:~/,$line;
+    if ($type eq "spam") {
+      $hashspamstats{$from}++;
+      $spamCount++;
+    } elsif ($type eq "normal") {
+      $hashstats{$from}++;
+      $normalCount++;
+    } elsif ($type eq "rbl") {
+      $hashspamstats{$from}++;
+      $rblCount++;
+    } elsif ($type eq "checkuser") {
+      $hashspamstats{$from}++;
+      $checkuserCount++;
     }
 
-    # Do stats for folder now
+				# Do stats for folder now
     if (defined $folder) {
       $folderCount{$folder}++;
     }
@@ -208,11 +130,6 @@ sub collectStats {
     sort { $b->[1] <=> $a->[1] }
       map { [split /~:~/, $_ ] }
 	@stats;
-  unless (@stats or @spamstats) {
-    print "You have no stats to update.  Please either send yourself\n";
-    print "an email, or wait for one to arrive.\n";
-    exit (1);
-  }
 }
 
 sub emailTypeGraph {
@@ -442,7 +359,7 @@ sub writeStats {
   print STATS "</center>\n";
 		
   print STATS "<hr>\n";
-  print STATS "This page was last updated on $today by " .
+  print STATS "This page was last updated on $today by" .
     "<a href=\"http://www.hld.ca/opensource/hldfilter\">HLDFilter $VERSION</a>\n";
 
   flock (STATS, 8);
@@ -458,3 +375,4 @@ sub writeStats {
 &collectStats;
 &removeIgnored;
 &writeStats;
+
