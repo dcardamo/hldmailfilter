@@ -1,3 +1,6 @@
+2.1.1 (Jan 31, 2001)  Features
+ - Added ability ignore certain emails when generating stats     
+
 2.1 (Jan 09, 2001)  QMail support
  - use MIME::Lite inteed of Mail::Sender
  - Bug fixed where hldfilter would not read the the config file properly
