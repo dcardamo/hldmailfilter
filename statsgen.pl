@@ -10,7 +10,7 @@
 #      http://www.hld.ca/opensource/hldfilter
 #
 ###########################################################################
-# 	$rcs = ' $Id: statsgen.pl,v 1.1 2001/01/24 03:35:18 wombat Exp $ ' ;
+# 	$rcs = ' $Id: statsgen.pl,v 2.1 2001/01/24 03:45:37 wombat Exp $ ' ;
 ###########################################################################
 use strict;
 use Mail::Audit;    # this is for filtering mail
