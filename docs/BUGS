@@ -1,3 +1,4 @@
+** CheckUser seems to cause latency with sendmail and sometimes won't work.  If you turn it off in the hldfilter.rc file then you won't get this problem. **
 
 I've tested on my own and it seems to work very well.  If you find a bug,
 please email me at wombat@hld.ca with it, as well as your system configuration.

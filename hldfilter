@@ -10,7 +10,7 @@
 #      http://www.hld.ca/opensource/hldfilter
 #
 ###########################################################################
-# 	$rcs = ' $Id: hldfilter,v 3.0 2001/06/01 16:42:36 wombat Exp $ ' ;
+# 	$rcs = ' $Id: hldfilter,v 3.1 2001/06/01 17:35:32 wombat Exp $ ' ;
 ###########################################################################
 
 use strict;
@@ -221,7 +221,7 @@ email=$email  # your email address
 smtpserver=localhost         # your outgoing mailserver
 rejectmsg=Message Not Accepted   # message to reject with
 
-CheckSenderValidity=yes      # check how valid the sender's email address is
+CheckSenderValidity=no      # check how valid the sender's email address is
 tidyMessages=yes             # clean up messages?  (not tested thorougly)
 replyInvalidUser=no          # should we reply to invalid users?
 RejectedSpamBounceISP=no    # send mail to abuse\@theirISP.com?
