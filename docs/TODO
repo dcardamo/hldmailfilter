@@ -1,12 +1,20 @@
 hldfilter
 ---------
+MEDIUM:
+- Add command line option to add email address to reject list
+- Add command line option to add domain to reject list
+- Add command line option to add rule to "rules" or "subjectrules"
+
+LOW:
 - auto responder list back
 - password protected auto responder
 - auto responder to certain emails only
-- add auto ignore or auto reject through mail from self
 - Fix reject rule of 100 for sendmail
 
 
 statsgen.pl
 -----------
+MEDIUM
+- Add command line option to make it compatible with procmail's logs
+LOW:
 - break RBL, CheckUser and Spam into different tables
